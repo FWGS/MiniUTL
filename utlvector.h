@@ -128,6 +128,7 @@ public:
 
 	// Purges the list and calls delete on each element in it.
 	void PurgeAndDeleteElements();
+	void PurgeAndDeleteElementsArray();
 
 	// Compacts the vector to the number of elements actually in use
 	void Compact();
@@ -980,29 +981,32 @@ inline void CUtlVector<T, A>::PurgeAndDeleteElements()
 }
 
 template< typename T, class A >
+inline void CUtlVector<T, A>::PurgeAndDeleteElementsArray()
+{
+	for( int i=0; i < m_Size; i++ )
+	{
+		delete[] Element(i);
+	}
+	Purge();
+}
+
+template< typename T, class A >
 inline void CUtlVector<T, A>::Compact()
 {
 	m_Memory.Purge(m_Size);
 }
 
 
-// A vector class for storing pointers, so that the elements pointed to by the pointers are deleted
-// on exit.
-template<class T> class CUtlVectorAutoPurge : public CUtlVector< T, CUtlMemory< T > >
-{
-public:
-	~CUtlVectorAutoPurge( void )
-	{
-		this->PurgeAndDeleteElements();
-	}
-
-};
-
 // easy string list class with dynamically allocated strings. For use with V_SplitString, etc.
 // Frees the dynamic strings in destructor.
-class CUtlStringList : public CUtlVectorAutoPurge< char *>
+class CUtlStringList : public CUtlVector< char*, CUtlMemory< char*, int > >
 {
 public:
+	~CUtlStringList( void )
+	{
+		this->PurgeAndDeleteElementsArray();
+	}
+
 	void CopyAndAddToTail( char const *pString )			// clone the string and add to the end
 	{
 		int len = 1 + static_cast<int>( strlen( pString ) );
