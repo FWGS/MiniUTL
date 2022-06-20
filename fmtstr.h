@@ -128,7 +128,7 @@ public:
 		m_nLength = V_snprintf( m_szBuf, sizeof(m_szBuf), "%.18g", f );
 		return m_szBuf;
 	}
-	//SDR_PUBLIC inline const char* SetHexUint64( uint64 un64 )	{ V_binarytohex( (byte *)&un64, sizeof( un64 ), m_szBuf, sizeof( m_szBuf ) ); m_nLength = V_strlen(m_szBuf); return m_szBuf; }
+	//SDR_PUBLIC inline const char* SetHexUint64( uint64 un64 )	{ V_binarytohex( (uint8 *)&un64, sizeof( un64 ), m_szBuf, sizeof( m_szBuf ) ); m_nLength = V_strlen(m_szBuf); return m_szBuf; }
 
 #undef NUMSTR_FAST_DIGIT
 #undef NUMSTR_CHECK_FAST
