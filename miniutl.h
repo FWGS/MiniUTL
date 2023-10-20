@@ -36,7 +36,9 @@
 		#define FMTFUNCTION( x, y )
 	#endif
 	#define _vsnprintf vsnprintf
+	#ifndef __cdecl
 	#define __cdecl
+	#endif
 #endif
 
 #if _MSC_VER >= 1600 && defined(_PREFAST_)// VS 2010 and above.
