@@ -137,7 +137,7 @@ public:
 	void SetGrowSize( int size )			{ m_Memory.SetGrowSize( size ); }
 
 	int NumAllocated() const { return m_Memory.NumAllocated(); }	// Only use this if you really know what you're doing!
-	
+
 	// Reverses the order of elements via swaps
 	void Reverse();
 
@@ -150,7 +150,7 @@ public:
 	int		SortedFindLessOrEqual( const T& search, bool (__cdecl *pfnLessFunc)( const T& src1, const T& src2, void *pCtx ), void *pLessContext ) const;
 	int		SortedFindLessOrEqual( const T& search, bool (__cdecl *pfnLessFunc)( const T& src1, const T& src2 ), int start, int end ) const;
 	int		SortedFindLessOrEqual( const T& search, bool (__cdecl *pfnLessFunc)( const T& src1, const T& src2 ) ) const;
-	
+
 	int		SortedInsert( const T& src, bool (__cdecl *pfnLessFunc)( const T& src1, const T& src2, void *pCtx ), void *pLessContext );
 	int		SortedInsert( const T& src, bool (__cdecl *pfnLessFunc)( const T& src1, const T& src2 ) );
 
@@ -596,7 +596,7 @@ inline int CUtlVector<T, A>::SortedInsert( const T& src, bool (__cdecl *pfnLessF
 template< typename T, class A >
 inline void CUtlVector<T, A>::Sort( int (__cdecl *pfnCompare)(const T *, const T *) )
 {
-	qsort( &Head(), Count(), sizeof( T ), (void*)pfnCompare );
+	qsort( &Head(), Count(), sizeof( T ), (int(*)(const void *, const void *))pfnCompare );
 }
 
 //-----------------------------------------------------------------------------
