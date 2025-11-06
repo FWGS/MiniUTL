@@ -11,7 +11,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <cinttypes>
 #include <math.h>
 #include "strtools.h"
 
