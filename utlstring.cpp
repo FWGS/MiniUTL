@@ -11,6 +11,31 @@
 #include "utlvector.h"
 #include "winlite.h"
 
+#ifndef HAVE_VASPRINTF
+int vasprintf ( char **strp, const char *fmt, va_list ap)
+{
+	int len, str_len;
+	len = vsnprintf( NULL, 0, fmt, ap );
+
+	if ( ( len >= 0 ) && ( len < INT_MAX ) )
+	{
+		*strp = (char*) malloc ( len + 1 );
+		if ( strp != NULL )
+		{
+			str_len = vsnprintf( *strp, len + 1, fmt, ap);
+			if ( str_len >= 0 )
+			{
+				return str_len;
+			}
+		}
+	}
+
+	// Error condition
+	*strp = NULL;
+	return -1;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: Helper: Find s substring
 //-----------------------------------------------------------------------------
