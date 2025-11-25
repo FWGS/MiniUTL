@@ -25,6 +25,14 @@
 #pragma GCC visibility push(hidden)
 #endif
 
+#if defined(IRIX_GCC_SIGNBIT_COMPAT)
+// compatibility for signbit on IRIX when using GCC
+#undef signbit
+#define signbit(x) (sizeof(x) == sizeof(double) ? _signbit(x) \
+	: sizeof(x) == sizeof(float) ? _signbitf(x) \
+	: _signbitl(x))
+#endif
+
 //=============================================================================
 
 // using macro to be compatible with GCC
