@@ -118,7 +118,7 @@ size_t CUtlString::FormatV( const char *pFormat, va_list args )
 
 	len2 = _vsnprintf( m_pchString, len + 1, pFormat, args );
 
-	if( len2 < 0 || len2 >= len )
+	if( len2 < 0 || len2 > len )
 	{
 		Set( "!Out Of Memory!" );
 		return sizeof( "!Out Of Memory!" ) - 1;
@@ -156,7 +156,7 @@ size_t CUtlString::VAppendFormat( const char *pFormat, va_list args )
 		}
 
 		len = _vsnprintf( large_buf, required_len + 1, pFormat, args );
-		if( len < 0 || len >= required_len )
+		if( len < 0 || len > required_len )
 		{
 			Append( "!Out Of Memory!", sizeof( "!Out Of Memory!" ) - 1);
 			return sizeof( "!Out Of Memory!" ) - 1;
