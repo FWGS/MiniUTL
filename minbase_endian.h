@@ -88,6 +88,7 @@ inline T QWordSwapC( T dw )
 #endif
 
 #undef LittleFloat // GCC isn't happy with xash3d_types.h definition
+#undef BigFloat
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 	#define BigInt16( val )		WordSwap( val )
