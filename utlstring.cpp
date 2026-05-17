@@ -109,14 +109,19 @@ static size_t RemoveWhitespace( char *pszString )
 size_t CUtlString::FormatV( const char *pFormat, va_list args )
 {
 	int len = 0, len2;
+	va_list args_copy;
 
 	// format into that space, which is certainly enough
-	len = _vsnprintf( NULL, 0, pFormat, args );
+	va_copy( args_copy, args );
+	len = _vsnprintf( NULL, 0, pFormat, args_copy );
+	va_end( args_copy );
 
 	FreePv( m_pchString );
 	m_pchString = (char *)PvAlloc( len + 1 );
 
-	len2 = _vsnprintf( m_pchString, len + 1, pFormat, args );
+	va_copy( args_copy, args );
+	len2 = _vsnprintf( m_pchString, len + 1, pFormat, args_copy );
+	va_end( args_copy );
 
 	if( len2 < 0 || len2 > len )
 	{
@@ -135,12 +140,19 @@ size_t CUtlString::VAppendFormat( const char *pFormat, va_list args )
 {
 	int len = 0, required_len = 0;
 	char pstrFormatted[4096];
+	va_list args_copy;
 
 	// format into that space, which is certainly enough
-	len = _vsnprintf( pstrFormatted, sizeof( pstrFormatted ), pFormat, args );
+	va_copy( args_copy, args );
+	len = _vsnprintf( pstrFormatted, sizeof( pstrFormatted ), pFormat, args_copy );
+	va_end( args_copy );
 
 	if( len < 0 )
-		required_len = _vsnprintf( NULL, 0, pFormat, args );
+	{
+		va_copy( args_copy, args );
+		required_len = _vsnprintf( NULL, 0, pFormat, args_copy );
+		va_end( args_copy );
+	}
 	else if( len > sizeof( pstrFormatted ))
 		required_len = len;
 
@@ -155,7 +167,9 @@ size_t CUtlString::VAppendFormat( const char *pFormat, va_list args )
 			return sizeof( "!Out Of Memory!" ) - 1;
 		}
 
-		len = _vsnprintf( large_buf, required_len + 1, pFormat, args );
+		va_copy( args_copy, args );
+		len = _vsnprintf( large_buf, required_len + 1, pFormat, args_copy );
+		va_end( args_copy );
 		if( len < 0 || len > required_len )
 		{
 			Append( "!Out Of Memory!", sizeof( "!Out Of Memory!" ) - 1);
