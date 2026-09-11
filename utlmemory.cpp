@@ -9,31 +9,31 @@
 #include <utlmemory.h>
 
 CUtlMemoryBase::CUtlMemoryBase( int nSizeOfType, int nGrowSize, int nInitAllocationCount ) : m_pMemory(0), 
-m_nAllocationCount( nInitAllocationCount ), m_nGrowSize( nGrowSize ), m_unSizeOfElements( nSizeOfType )
+m_nAllocationCount( nInitAllocationCount ), m_nGrowSize( nGrowSize )
 {
-	Assert( m_unSizeOfElements > 0 );
+	Assert( nSizeOfType > 0 );
 	Assert( nGrowSize >= 0 );
 	if (m_nAllocationCount)
 	{
 		UTLMEMORY_TRACK_ALLOC();
-		m_pMemory = PvAlloc( m_nAllocationCount * m_unSizeOfElements );
+		m_pMemory = PvAlloc( m_nAllocationCount * nSizeOfType );
 	}
 }
 
 
 CUtlMemoryBase::CUtlMemoryBase( int nSizeOfType, void * pMemory, int numElements ) : m_pMemory(pMemory),
-m_nAllocationCount( numElements ), m_unSizeOfElements( nSizeOfType )
+m_nAllocationCount( numElements )
 {
-	Assert( m_unSizeOfElements > 0 );
+	Assert( nSizeOfType > 0 );
 	// Special marker indicating externally supplied modifyable memory
 	m_nGrowSize = EXTERNAL_BUFFER_MARKER;
 }
 
 
 CUtlMemoryBase::CUtlMemoryBase( int nSizeOfType, const void * pMemory, int numElements ) : m_pMemory( (void*)pMemory ),
-m_nAllocationCount( numElements ),  m_unSizeOfElements( nSizeOfType )
+m_nAllocationCount( numElements )
 {
-	Assert( m_unSizeOfElements > 0 );
+	Assert( nSizeOfType > 0 );
 	// Special marker indicating externally supplied modifyable memory
 	m_nGrowSize = EXTERNAL_CONST_BUFFER_MARKER;
 }
@@ -49,13 +49,9 @@ CUtlMemoryBase::~CUtlMemoryBase()
 //-----------------------------------------------------------------------------
 void CUtlMemoryBase::Swap( CUtlMemoryBase &mem )
 {
-	// Shouldn't really be swapping if types didn't match, thus sizes should match
-	Assert( m_unSizeOfElements == mem.m_unSizeOfElements );
-
 	SWAP( m_nGrowSize, mem.m_nGrowSize );
 	SWAP( m_pMemory, mem.m_pMemory );
 	SWAP( m_nAllocationCount, mem.m_nAllocationCount );
-	SWAP( m_unSizeOfElements, mem.m_unSizeOfElements );
 }
 
 
@@ -74,7 +70,7 @@ void *CUtlMemoryBase::Detach()
 //-----------------------------------------------------------------------------
 // Switches the buffer from an external memory buffer to a reallocatable buffer
 //-----------------------------------------------------------------------------
-void CUtlMemoryBase::ConvertToGrowableMemory( int nGrowSize )
+void CUtlMemoryBase::ConvertToGrowableMemory( int nGrowSize, int nSizeOfType )
 {
 	if ( !IsExternallyAllocated() )
 		return;
@@ -85,7 +81,7 @@ void CUtlMemoryBase::ConvertToGrowableMemory( int nGrowSize )
 		UTLMEMORY_TRACK_ALLOC();
 		MEM_ALLOC_CREDIT_CLASS();
 
-		int nNumBytes = m_nAllocationCount * m_unSizeOfElements;
+		int nNumBytes = m_nAllocationCount * nSizeOfType;
 		void *pMemory = PvAlloc( nNumBytes );
 		memcpy( pMemory, m_pMemory, nNumBytes ); 
 		m_pMemory = pMemory;
@@ -225,7 +221,7 @@ int UtlMemory_CalcNewAllocationCount( int nAllocationCount, int nGrowSize, int n
 }
 
 
-void CUtlMemoryBase::Grow( int num )
+void CUtlMemoryBase::Grow( int num, int nSizeOfType )
 {
 	Assert( num > 0 );
 
@@ -242,16 +238,16 @@ void CUtlMemoryBase::Grow( int num )
 
 	UTLMEMORY_TRACK_FREE();
 
-	m_nAllocationCount = UtlMemory_CalcNewAllocationCount( m_nAllocationCount, m_nGrowSize, nAllocationRequested, m_unSizeOfElements );
+	m_nAllocationCount = UtlMemory_CalcNewAllocationCount( m_nAllocationCount, m_nGrowSize, nAllocationRequested, nSizeOfType );
 
 	UTLMEMORY_TRACK_ALLOC();
 	if (m_pMemory)
 	{
-		m_pMemory = PvRealloc( m_pMemory, m_nAllocationCount * m_unSizeOfElements );
+		m_pMemory = PvRealloc( m_pMemory, m_nAllocationCount * nSizeOfType );
 	}
 	else
 	{
-		m_pMemory = PvAlloc( m_nAllocationCount * m_unSizeOfElements );
+		m_pMemory = PvAlloc( m_nAllocationCount * nSizeOfType );
 	}
 }
 
@@ -259,7 +255,7 @@ void CUtlMemoryBase::Grow( int num )
 //-----------------------------------------------------------------------------
 // Makes sure we've got at least this much memory
 //-----------------------------------------------------------------------------
-void CUtlMemoryBase::EnsureCapacity( int num )
+void CUtlMemoryBase::EnsureCapacity( int num, int nSizeOfType )
 {
 	if (m_nAllocationCount >= num)
 		return;
@@ -279,11 +275,11 @@ void CUtlMemoryBase::EnsureCapacity( int num )
 
 	if (m_pMemory)
 	{
-		m_pMemory = PvRealloc( m_pMemory, m_nAllocationCount * m_unSizeOfElements );
+		m_pMemory = PvRealloc( m_pMemory, m_nAllocationCount * nSizeOfType );
 	}
 	else
 	{
-		m_pMemory = PvAlloc( m_nAllocationCount * m_unSizeOfElements );
+		m_pMemory = PvAlloc( m_nAllocationCount * nSizeOfType );
 	}
 }
 
@@ -306,7 +302,7 @@ void CUtlMemoryBase::Purge()
 }
 
 
-void CUtlMemoryBase::Purge( int numElements, bool bRealloc )
+void CUtlMemoryBase::Purge( int numElements, int nSizeOfType, bool bRealloc )
 {
 	Assert( numElements >= 0 );
 
@@ -353,7 +349,7 @@ void CUtlMemoryBase::Purge( int numElements, bool bRealloc )
 
 		// Allocation count > 0, shrink it down.
 		MEM_ALLOC_CREDIT_CLASS();
-		m_pMemory = PvRealloc( m_pMemory, m_nAllocationCount * m_unSizeOfElements );
+		m_pMemory = PvRealloc( m_pMemory, m_nAllocationCount * nSizeOfType );
 	}
 	else
 	{

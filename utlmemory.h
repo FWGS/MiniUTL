@@ -51,24 +51,23 @@ public:
 
 	// Switches the buffer from an external memory buffer to a reallocatable buffer
 	// Will copy the current contents of the external buffer to the reallocatable buffer
-	void ConvertToGrowableMemory( int nGrowSize );
+	void ConvertToGrowableMemory( int nGrowSize, int nSizeOfType );
 
 	// Size
 	int NumAllocated() const;
 	int Count() const;
 
-	int CubAllocated() const { return m_nAllocationCount * m_unSizeOfElements; }
 	// Grows the memory, so that at least allocated + num elements are allocated
-	void Grow( int num = 1 );
+	void Grow( int num, int nSizeOfType );
 
 	// Makes sure we've got at least this much memory
-	void EnsureCapacity( int num );
+	void EnsureCapacity( int num, int nSizeOfType );
 
 	// Memory deallocation
 	void Purge();
 
 	// Purge all but the given number of elements
-	void Purge( int numElements, bool bRealloc = true );
+	void Purge( int numElements, int nSizeOfType, bool bRealloc = true );
 
 	// is the memory externally allocated?
 	bool IsExternallyAllocated() const;
@@ -91,11 +90,13 @@ protected:
 		EXTERNAL_CONST_BUFFER_MARKER = -2,
 	};
 
-	uint32_t m_unSizeOfElements;
+	// a1ba: updated to reflect Valve's tier1 CUtlMemory layout so we can pass objects to steamclient.so in OpenSteamClient
 	void * m_pMemory;
 	int m_nAllocationCount;
 	int m_nGrowSize;
 };
+
+static_assert( sizeof( CUtlMemoryBase ) == 2 * sizeof( int ) + sizeof( void * ), "CUtlMemory must not grow: see the comment above" );
 
 template< class T >
 class CUtlMemory : public CUtlMemoryBase
@@ -115,6 +116,13 @@ public:
 	// Gets the base address (can change when adding elements!)
 	T* Base();
 	const T* Base() const;
+
+	int CubAllocated() const                            { return NumAllocated() * (int)sizeof( T ); }
+	void Grow( int num = 1 )                            { CUtlMemoryBase::Grow( num, sizeof( T ) ); }
+	void EnsureCapacity( int num )                      { CUtlMemoryBase::EnsureCapacity( num, sizeof( T ) ); }
+	void ConvertToGrowableMemory( int nGrowSize )       { CUtlMemoryBase::ConvertToGrowableMemory( nGrowSize, sizeof( T ) ); }
+	void Purge()                                        { CUtlMemoryBase::Purge(); }
+	void Purge( int numElements, bool bRealloc = true ) { CUtlMemoryBase::Purge( numElements, sizeof( T ), bRealloc ); }
 
 private:
 	
